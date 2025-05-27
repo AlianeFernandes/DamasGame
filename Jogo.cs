@@ -71,11 +71,10 @@ namespace DamasGame
             Tabuleiro[origemRow, origemCol] = null;
 
             // Se a peça atingir a última linha, ela se torna uma dama
-            if ((peca.IsBranca && destinoRow == 0) || (!peca.IsBranca && destinoRow == 7))
+            if ((peca.IsBranca && destinoRow == 7) || (!peca.IsBranca && destinoRow == 0))
             {
                 peca.IsDama = true;
-            }
-
+            }   
             // Troca o turno
             TurnoBranco = !TurnoBranco;
 
@@ -92,25 +91,64 @@ namespace DamasGame
             // Verifica se a casa de destino está livre
             if (Tabuleiro[destinoRow, destinoCol] != null)
                 return false;
-
             // Calcula a direção do movimento
             int deltaRow = destinoRow - origemRow;
             int deltaCol = destinoCol - origemCol;
 
             // Verifica se a peça está se movendo para frente ou para trás (de acordo com a cor)
-            if (peca.IsBranca && deltaRow <= 0)  // Peça branca só pode mover para baixo
+            if (peca.IsBranca && deltaRow <= 0 && !peca.IsDama)
+            { // Peça branca só pode mover para baixo
+                Console.WriteLine("Olá, mundo!: ", peca);
+                return false;
+            }
+
+            if (!peca.IsBranca && deltaRow >= 0 && !peca.IsDama)  // Peça preta só pode mover para cima
                 return false;
 
-            if (!peca.IsBranca && deltaRow >= 0)  // Peça preta só pode mover para cima
+            
+
+            // Verifica se o movimento é diagonal
+            if (Math.Abs(deltaRow) != Math.Abs(deltaCol))
                 return false;
 
-            // Verifica se o movimento é diagonal (de 1 casa)
-            if (Math.Abs(deltaRow) != 1 || Math.Abs(deltaCol) != 1)
-                return false;
+            if (peca.IsDama) {
+                int steps = Math.Max(Math.Abs(deltaRow), Math.Abs(deltaCol));
+                int stepRow = (deltaRow == 0) ? 0 : deltaRow / Math.Abs(deltaRow);
+                int stepCol = (deltaCol == 0) ? 0 : deltaCol / Math.Abs(deltaCol);
+                int row = origemRow;
+                int col = origemCol;
 
-            // Se a peça for uma dama, ela pode se mover em qualquer direção (diagonal)
-            if (peca.IsDama)
+                for (int i = 0; i < steps; i++)
+                {
+                    row += stepRow;
+                    col += stepCol;
+                    if (Tabuleiro[row, col] != null)
+                    {
+                        if (Tabuleiro[row, col].IsBranca != peca.IsBranca)
+                        { 
+                            Tabuleiro[row, col] = null; // ou qualquer outra lógica para "apagar"
+                        }
+                    }
+                }
+
                 return true;
+            }
+
+            if (Math.Abs(deltaRow) > 2 || Math.Abs(deltaRow) == 0)
+                return false;
+
+            //quando tentando se mover uma diagonal de 2
+            if (Math.Abs(deltaRow) == 2)
+            {
+                if (Tabuleiro[origemRow + (deltaRow / 2), origemCol + (deltaCol / 2)] == null)
+                    return false;
+
+                Peca alvo = Tabuleiro[origemRow + (deltaRow / 2), origemCol + (deltaCol / 2)];
+                if ((peca.IsBranca && alvo.IsBranca) || (!peca.IsBranca && !alvo.IsBranca))
+                    return false;
+                Tabuleiro[origemRow + (deltaRow / 2), origemCol + (deltaCol / 2)] = null;
+                return true;
+            }
 
             // Se for uma peça comum, deve se mover apenas uma casa de cada vez
             return true;
